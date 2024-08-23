@@ -1,5 +1,0 @@
----
-"@repo/ui": major
----
-
-UI
