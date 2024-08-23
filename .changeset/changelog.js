@@ -84,9 +84,16 @@ const changelogFunctions = {
       })
       .trim();
 
+    console.log("replacedChangelog", replacedChangelog);
+
     const [firstLine, ...futureLines] = replacedChangelog
       .split("\n")
       .map((l) => l.trimRight());
+
+    console.log("first line", firstLine);
+    console.log("prFromSummary", prFromSummary);
+    console.log("commitFromSummary", commitFromSummary);
+    console.log("usersFromSummary", usersFromSummary);
 
     // const links = await (async () => {
     //   if (prFromSummary !== undefined) {
