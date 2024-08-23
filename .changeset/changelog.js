@@ -1,9 +1,12 @@
-import { ChangelogFunctions } from "@changesets/types";
+// import { ChangelogFunctions } from "@changesets/types";
 // @ts-ignore
-import { config } from "dotenv";
-import { getInfo, getInfoFromPullRequest } from "@changesets/get-github-info";
-
-config();
+// import { config } from "dotenv";
+// import { getInfo, getInfoFromPullRequest } from "@changesets/get-github-info";
+require("dotenv").config();
+const {
+  getInfo,
+  getInfoFromPullRequest,
+} = require("@changesets/get-github-info");
 
 const changelogFunctions = {
   getDependencyReleaseLine: async (
@@ -11,6 +14,12 @@ const changelogFunctions = {
     dependenciesUpdated,
     options
   ) => {
+    console.log(
+      "getDependencyReleaseLine",
+      changesets,
+      dependenciesUpdated,
+      options
+    );
     if (!options.repo) {
       throw new Error(
         'Please provide a repo to this changelog generator like this:\n"changelog": ["@changesets/changelog-github", { "repo": "org/repo" }]'
@@ -18,27 +27,29 @@ const changelogFunctions = {
     }
     if (dependenciesUpdated.length === 0) return "";
 
-    const changesetLink = `- Updated dependencies [${(
-      await Promise.all(
-        changesets.map(async (cs) => {
-          if (cs.commit) {
-            let { links } = await getInfo({
-              repo: options.repo,
-              commit: cs.commit,
-            });
-            return links.commit;
-          }
-        })
-      )
-    )
-      .filter((_) => _)
-      .join(", ")}]:`;
+    return "";
 
-    const updatedDepenenciesList = dependenciesUpdated.map(
-      (dependency) => `  - ${dependency.name}@${dependency.newVersion}`
-    );
+    // const changesetLink = `- Updated dependencies [${(
+    //   await Promise.all(
+    //     changesets.map(async (cs) => {
+    //       if (cs.commit) {
+    //         let { links } = await getInfo({
+    //           repo: options.repo,
+    //           commit: cs.commit,
+    //         });
+    //         return links.commit;
+    //       }
+    //     })
+    //   )
+    // )
+    //   .filter((_) => _)
+    //   .join(", ")}]:`;
 
-    return [changesetLink, ...updatedDepenenciesList].join("\n");
+    // const updatedDepenenciesList = dependenciesUpdated.map(
+    //   (dependency) => `  - ${dependency.name}@${dependency.newVersion}`
+    // );
+
+    // return [changesetLink, ...updatedDepenenciesList].join("\n");
   },
   getReleaseLine: async (changeset, type, options) => {
     if (!options || !options.repo) {
@@ -55,7 +66,7 @@ const changelogFunctions = {
 
     let prFromSummary;
     let commitFromSummary;
-    let usersFromSummary;
+    let usersFromSummary = [];
 
     const replacedChangelog = changeset.summary
       .replace(/^\s*(?:pr|pull|pull\s+request):\s*#?(\d+)/im, (_, pr) => {
@@ -77,35 +88,40 @@ const changelogFunctions = {
       .split("\n")
       .map((l) => l.trimRight());
 
-    const links = await (async () => {
-      if (prFromSummary !== undefined) {
-        let { links } = await getInfoFromPullRequest({
-          repo: options.repo,
-          pull: prFromSummary,
-        });
-        if (commitFromSummary) {
-          const shortCommitId = commitFromSummary.slice(0, 7);
-          links = {
-            ...links,
-            commit: `[\`${shortCommitId}\`](https://github.com/${options.repo}/commit/${commitFromSummary})`,
-          };
-        }
-        return links;
-      }
-      const commitToFetchFrom = commitFromSummary || changeset.commit;
-      if (commitToFetchFrom) {
-        let { links } = await getInfo({
-          repo: options.repo,
-          commit: commitToFetchFrom,
-        });
-        return links;
-      }
-      return {
-        commit: null,
-        pull: null,
-        user: null,
-      };
-    })();
+    // const links = await (async () => {
+    //   if (prFromSummary !== undefined) {
+    //     let { links } = await getInfoFromPullRequest({
+    //       repo: options.repo,
+    //       pull: prFromSummary,
+    //     });
+    //     if (commitFromSummary) {
+    //       const shortCommitId = commitFromSummary.slice(0, 7);
+    //       links = {
+    //         ...links,
+    //         commit: `[\`${shortCommitId}\`](https://github.com/${options.repo}/commit/${commitFromSummary})`,
+    //       };
+    //     }
+    //     return links;
+    //   }
+    //   const commitToFetchFrom = commitFromSummary || changeset.commit;
+    //   if (commitToFetchFrom) {
+    //     let { links } = await getInfo({
+    //       repo: options.repo,
+    //       commit: commitToFetchFrom,
+    //     });
+    //     return links;
+    //   }
+    //   return {
+    //     commit: null,
+    //     pull: null,
+    //     user: null,
+    //   };
+    // })();
+    const links = {
+      commit: null,
+      pull: null,
+      user: null,
+    };
 
     const users = usersFromSummary.length
       ? usersFromSummary
@@ -128,4 +144,6 @@ const changelogFunctions = {
   },
 };
 
-export default changelogFunctions;
+module.exports = changelogFunctions;
+
+// export default changelogFunctions;
