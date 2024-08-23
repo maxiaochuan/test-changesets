@@ -1,6 +1,6 @@
 {
   "$schema": "https://unpkg.com/@changesets/config@3.0.2/schema.json",
-  "changelog": ["./changelog.js", { "repo": "maxiaochuan/mxcins", "haha": "haha" }],
+  "changelog": ["./changelog.js", { "repo": "maxiaochuan/test-changesets" }],
   "commit": false,
   "fixed": [],
   "linked": [],

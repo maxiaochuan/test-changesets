@@ -27,29 +27,29 @@ const changelogFunctions = {
     }
     if (dependenciesUpdated.length === 0) return "";
 
-    return "";
+    // return "";
 
-    // const changesetLink = `- Updated dependencies [${(
-    //   await Promise.all(
-    //     changesets.map(async (cs) => {
-    //       if (cs.commit) {
-    //         let { links } = await getInfo({
-    //           repo: options.repo,
-    //           commit: cs.commit,
-    //         });
-    //         return links.commit;
-    //       }
-    //     })
-    //   )
-    // )
-    //   .filter((_) => _)
-    //   .join(", ")}]:`;
+    const changesetLink = `- Updated dependencies [${(
+      await Promise.all(
+        changesets.map(async (cs) => {
+          if (cs.commit) {
+            let { links } = await getInfo({
+              repo: options.repo,
+              commit: cs.commit,
+            });
+            return links.commit;
+          }
+        })
+      )
+    )
+      .filter((_) => _)
+      .join(", ")}]:`;
 
-    // const updatedDepenenciesList = dependenciesUpdated.map(
-    //   (dependency) => `  - ${dependency.name}@${dependency.newVersion}`
-    // );
+    const updatedDepenenciesList = dependenciesUpdated.map(
+      (dependency) => `  - ${dependency.name}@${dependency.newVersion}`
+    );
 
-    // return [changesetLink, ...updatedDepenenciesList].join("\n");
+    return [changesetLink, ...updatedDepenenciesList].join("\n");
   },
   getReleaseLine: async (changeset, type, options) => {
     if (!options || !options.repo) {
@@ -95,40 +95,37 @@ const changelogFunctions = {
     console.log("commitFromSummary", commitFromSummary);
     console.log("usersFromSummary", usersFromSummary);
 
-    // const links = await (async () => {
-    //   if (prFromSummary !== undefined) {
-    //     let { links } = await getInfoFromPullRequest({
-    //       repo: options.repo,
-    //       pull: prFromSummary,
-    //     });
-    //     if (commitFromSummary) {
-    //       const shortCommitId = commitFromSummary.slice(0, 7);
-    //       links = {
-    //         ...links,
-    //         commit: `[\`${shortCommitId}\`](https://github.com/${options.repo}/commit/${commitFromSummary})`,
-    //       };
-    //     }
-    //     return links;
-    //   }
-    //   const commitToFetchFrom = commitFromSummary || changeset.commit;
-    //   if (commitToFetchFrom) {
-    //     let { links } = await getInfo({
-    //       repo: options.repo,
-    //       commit: commitToFetchFrom,
-    //     });
-    //     return links;
-    //   }
-    //   return {
-    //     commit: null,
-    //     pull: null,
-    //     user: null,
-    //   };
-    // })();
-    const links = {
-      commit: null,
-      pull: null,
-      user: null,
-    };
+    const links = await (async () => {
+      if (prFromSummary !== undefined) {
+        let { links } = await getInfoFromPullRequest({
+          repo: options.repo,
+          pull: prFromSummary,
+        });
+        if (commitFromSummary) {
+          const shortCommitId = commitFromSummary.slice(0, 7);
+          links = {
+            ...links,
+            commit: `[\`${shortCommitId}\`](https://github.com/${options.repo}/commit/${commitFromSummary})`,
+          };
+        }
+        return links;
+      }
+      const commitToFetchFrom = commitFromSummary || changeset.commit;
+      console.log("commitToFetchFrom", commitToFetchFrom);
+      if (commitToFetchFrom) {
+        let { links } = await getInfo({
+          repo: options.repo,
+          commit: commitToFetchFrom,
+        });
+        console.log("commitToFetchFrom, links", links);
+        return links;
+      }
+      return {
+        commit: null,
+        pull: null,
+        user: null,
+      };
+    })();
 
     const users = usersFromSummary.length
       ? usersFromSummary
