@@ -9,6 +9,7 @@ const {
 } = require("@changesets/get-github-info");
 const spawn = require("spawndamnit");
 const { getPackages } = require("@manypkg/get-packages");
+const path = require("path");
 
 const changelogFunctions = {
   getDependencyReleaseLine: async (
@@ -141,38 +142,51 @@ const changelogFunctions = {
       }
     );
 
-    const commits = stdout.split("\n").map((row) => {
-      const match = row.match(/([a-f0-9]{40}) - (.*)/);
-      return { commit: match[1], message: match[2] };
-    });
+    const commits = stdout
+      .toString()
+      .split("\n")
+      .map((row) => {
+        const match = row.match(/([a-f0-9]{40}) - (.*)/);
+        return { commit: match[1], message: match[2] };
+      });
 
-    const packages = await getPackages(process.cwd());
+    const { packages } = await getPackages(process.cwd());
 
     console.log("packages", packages);
 
-    changesets.releases.map((release) => {
+    changeset.releases.map((release) => {
       const name = release.name;
+      const package = packages.find((p) => p.packageJson.name === name);
+      if (!package) {
+        throw new Error(`cannot find package ${name}`);
+      }
+      const dir = path.basename(package.dir);
+      let findCommit = false;
+
+      const before = [];
+
+      commits.forEach((row) => {
+        if (row.commit === commit) {
+          findCommit = true;
+          console.log("找到了 commit", row.commit, row.message);
+          return;
+        }
+        const re = new RegExp(
+          `^(feat|fix|perf|docs|style|refactor|test|chore)\\(${dir}\\):.*`
+        );
+        if (findCommit) {
+          console.log("row", row.message);
+        }
+        if (findCommit && re.test(row.message)) {
+          before.push(row);
+        }
+        if (row.message.startsWith("chore: changeset")) {
+          findCommit = false;
+        }
+      });
+
+      console.log("before\n\n", JSON.stringify(before, undefined, 2));
     });
-
-    // let findCommit = false;
-
-    // const before = [];
-
-    // commits.forEach((row) => {
-    //   if (row.commit === commit) {
-    //     findCommit = true;
-    //     console.log("找到了 commit", row.commit, row.message);
-    //     return;
-    //   }
-    //   if (findCommit && row.message.startsWith("feat(ui):")) {
-    //     before.push(row);
-    //   }
-    //   if (row.message.startsWith("chore: changeset")) {
-    //     findCommit = false;
-    //   }
-    // });
-
-    // console.log("before\n\n", JSON.stringify(before, undefined, 2));
 
     const users = usersFromSummary.length
       ? usersFromSummary
